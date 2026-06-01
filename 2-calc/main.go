@@ -73,6 +73,7 @@ func main() {
 
 	// 2. Считываем строку с числами.
 	fmt.Print("Введите числа через запятую: ")
+	fmt.Scanln(&input)
 
 	// 3. Разбираем строку в срез чисел.
 	numbers, err := parseNumbers(input)

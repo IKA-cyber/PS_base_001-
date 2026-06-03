@@ -2,31 +2,33 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
-const (
-	USDToEUR = 0.9
-	USDToRUB = 80.0
-)
+var rates = map[string]float64{
+	"USD": 1.0,
+	"EUR": 0.9,
+	"RUB": 80.0,
+}
 
-func readCurrency(promt string) string {
+func readCurrency(prompt string) string {
 	var cur string
 
 	for {
-		fmt.Println(cur)
+		fmt.Println(prompt)
 		fmt.Println("Доступные валюты: USD, EUR, RUB")
 		fmt.Print("Введите валюту: ")
 
 		fmt.Scan(&cur)
+		cur = strings.ToUpper(cur)
 
-		switch cur {
-		case "USD", "EUR", "RUB":
+		if _, ok := rates[cur]; ok {
 			return cur
-		default:
-			fmt.Println("Ошибка: некорректная валюта.Попробуйте снова")
 		}
+		fmt.Println("Ошибка: некорректная валюта. Попробуйте снова.")
 	}
 }
+
 func readAmount() float64 {
 	var amount float64
 
@@ -34,41 +36,19 @@ func readAmount() float64 {
 		fmt.Print("Введите сумму: ")
 
 		_, err := fmt.Scan(&amount)
-		if err == nil {
+		if err == nil && amount >= 0 {
 			return amount
 		}
-
-		fmt.Println("Ошибка: введите число.")
+		fmt.Println("Ошибка: введите неотрицательное число.")
 
 		var discard string
 		fmt.Scanln(&discard)
 	}
 }
 
-func convert(amount float64, from string, to string) float64 {
-	var inUSD float64
-
-	// сначала в USD
-	switch from {
-	case "USD":
-		inUSD = amount
-	case "EUR":
-		inUSD = amount / USDToEUR
-	case "RUB":
-		inUSD = amount / USDToRUB
-	}
-
-	// из USD в нужную валюту
-	switch to {
-	case "USD":
-		return inUSD
-	case "EUR":
-		return inUSD * USDToEUR
-	case "RUB":
-		return inUSD * USDToRUB
-	}
-
-	return 0
+func convert(amount float64, from, to string) float64 {
+	inUSD := amount / rates[from]
+	return inUSD * rates[to]
 }
 
 func main() {
@@ -78,7 +58,18 @@ func main() {
 	amount := readAmount()
 	to := readCurrency("Выберите целевую валюту")
 
+	if from == to {
+		fmt.Printf("\nРезультат: %.2f %s\n", amount, to)
+		return
+	}
+
 	result := convert(amount, from, to)
 
-	fmt.Printf("\nРезультат: %.2f %s\n", result, to)
+	fmt.Printf(
+		"\n%.2f %s = %.2f %s\n",
+		amount,
+		from,
+		result,
+		to,
+	)
 }
